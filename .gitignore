@@ -431,6 +431,10 @@ FodyWeavers.xsd
 ### VisualStudio Patch ###
 *.sln
 .vs/
-.vcxproj
-.vcxproj.filters
-.vcxproj.user
+.Debug/
+.Release/
+x64/
+x86/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
