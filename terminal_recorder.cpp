@@ -4,23 +4,22 @@ namespace ttygif
 {
     // Constructor
     TerminalRecorder::TerminalRecorder()
-        : state(RecordingState::IDLE)
+        : consoleHandle(GetStdHandle(STD_OUTPUT_HANDLE), &CloseHandle)
+        , state(RecordingState::IDLE)
         , lastError(ErrorCode::SUCCESS)
-        , consoleHandle(GetStdHandle(STD_OUTPUT_HANDLE))
     {
-        if (consoleHandle == INVALID_HANDLE_VALUE)
+        if (consoleHandle.get() == INVALID_HANDLE_VALUE)
         {
-            lastError = ErrorCode::CONSOLE_ERROR;
             state = RecordingState::_ERROR;
+            lastError = ErrorCode::CONSOLE_ERROR;
+            throw std::runtime_error("Failed to get console handle");
         }
     }
 
-    TerminalRecorder::~TerminalRecorder() = default;
-
     // Start recording if not already recording and console handle is valid
-    bool TerminalRecorder::startRecording()
+    bool TerminalRecorder::startRecording() noexcept
     {
-        if (state == RecordingState::RECORDING || consoleHandle == INVALID_HANDLE_VALUE)
+        if (state == RecordingState::RECORDING || consoleHandle.get() == INVALID_HANDLE_VALUE)
         {
             lastError = ErrorCode::CONSOLE_ERROR;
             return false;
@@ -31,12 +30,13 @@ namespace ttygif
     }
 
     // Stop recording if currently recording
-    bool TerminalRecorder::stopRecording()
+    bool TerminalRecorder::stopRecording() noexcept
     {
         if (state != RecordingState::RECORDING)
         {
             return false;
         }
+
         state = RecordingState::IDLE;
         return true;
     }
@@ -72,7 +72,7 @@ namespace ttygif
         CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
 
         // Get console buffer information
-        if (!GetConsoleScreenBufferInfo(consoleHandle, &bufferInfo))
+        if (!GetConsoleScreenBufferInfo(consoleHandle.get(), &bufferInfo))
         {
             lastError = ErrorCode::CONSOLE_ERROR;
             return false;
@@ -104,7 +104,7 @@ namespace ttygif
 
         // Read console output to frame buffer
         if (!ReadConsoleOutput(
-            consoleHandle, 
+            consoleHandle.get(),
             frame.buffer.data(),
             bufferSize,
             bufferCoord,

@@ -39,8 +39,6 @@ namespace ttygif
         RecordingState getState() const noexcept;
         ErrorCode getLastError() const noexcept;
 
-        bool saveToGif(const std::string& filename, int frameDelayMs);
-
     private:
         std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(&CloseHandle)> consoleHandle;
         std::vector<FrameData> frames;
